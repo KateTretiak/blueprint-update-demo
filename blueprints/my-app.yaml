@@ -107,6 +107,7 @@ grains:
         - environment: '{{ .inputs.environment }}'
         - vpc_id: '{{ .grains.vpc.outputs.vpc_id }}'
         - database_name: '{{ .inputs.app_name }}-db'
+        - private_subnet_ids: '{{ .grains.vpc.outputs.private_subnet_ids }}'
         - instance_class: '{{ .inputs.db_instance_class }}'
         - instance_count: '{{ .inputs.db_instance_count }}'
       outputs:
@@ -130,6 +131,7 @@ grains:
         - cluster_name: '{{ .inputs.app_name }}'
         - cluster_version: '{{ .inputs.k8s_version }}'
         - node_instance_type: '{{ .inputs.node_size }}'
+        - private_subnet_ids: '{{ .grains.vpc.outputs.private_subnet_ids }}'
         - desired_capacity: '{{ .inputs.node_count }}'
       outputs:
         - cluster_name
