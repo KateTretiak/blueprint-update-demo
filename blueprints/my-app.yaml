@@ -98,6 +98,14 @@ grains:
   aurora:
     depends-on: vpc
     kind: blueprint
+    env-labels:
+      on-success:
+        - 'label1'
+        - test: 'label4'
+        - test1: '{{ .grains.aurora.outputs.database_name }}'
+        - '{{ .grains.aurora.outputs.cluster_id }}'
+      on-failure:
+        - result: 'test1'
     spec:
       source:
         store: blueprint-update-demo
@@ -108,7 +116,7 @@ grains:
         - vpc_id: '{{ .grains.vpc.outputs.vpc_id }}'
         - database_name: '{{ .inputs.app_name }}-db'
         - private_subnet_ids: '{{ .grains.vpc.outputs.private_subnet_ids }}'
-        - instance_class: '{{ .inputs.db_instance_class }}'
+        - instance_class: "db.r6g.xlarge"
         - instance_count: '{{ .inputs.db_instance_count }}'
       outputs:
         - cluster_id
