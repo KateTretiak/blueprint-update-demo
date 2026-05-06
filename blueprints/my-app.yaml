@@ -103,7 +103,7 @@ grains:
         - 'label1'
         - test: 'label4'
         - test1: '{{ .grains.aurora.outputs.database_name }}'
-        - '{{ .grains.aurora.outputs.hello_world }}'
+        - '{{ .grains.aurora.outputs.cluster_id }}'
       on-failure:
         - result: 'test1'
     spec:
