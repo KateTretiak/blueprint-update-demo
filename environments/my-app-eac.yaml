@@ -1,9 +1,11 @@
+spec_version: 2
+description: Full-stack application environment with VPC, Aurora database, EKS cluster, and API Gateway
+
 environment:
   environment_name: my-app-20260506T17041871
   state: active
   owner_email: kate.t@quali.com
-spec_version: 2
-description: Full-stack application environment with VPC, Aurora database, EKS cluster, and API Gateway
+
 inputs:
   agent:
     type: agent
@@ -90,23 +92,6 @@ outputs:
     quick: true
 grains:
   vpc:
-    kind: blueprint
-    spec:
-      source:
-        store: blueprint-update-demo
-        path: blueprints/vpc.yaml
-      env-vars: []
-      commands: []
-      inputs:
-        - agent: '{{ .inputs.agent }}'
-        - environment: '{{ .inputs.environment }}'
-      outputs:
-        - vpc_id
-        - vpc_cidr
-        - private_subnet_ids
-        - public_subnet_ids
-        - nat_gateway_ip
-  vpc123:
     kind: blueprint
     spec:
       source:
