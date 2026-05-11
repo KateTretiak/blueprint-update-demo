@@ -1,89 +1,93 @@
-spec_version: 2
-description: Full-stack application environment with VPC, Aurora database, EKS cluster, and API Gateway
-
 environment:
-  environment_name: my-app-eac
+  environment_name: my-app-20260506T17041871
   state: active
   owner_email: kate.t@quali.com
-
+spec_version: 2
+description: Full-stack application environment with VPC, Aurora database, EKS cluster, and API Gateway
 inputs:
   agent:
     type: agent
     default: eks-permissions
   environment:
     type: string
-    default: "dev"
-    description: "Environment name (e.g. dev, staging, production)"
+    default: dev
     allowed-values:
-      - "dev"
-      - "staging"
-      - "production"
+      - dev
+      - staging
+      - production
+    description: Environment name (e.g. dev, staging, production)
   app_name:
     type: string
-    default: "my-app"
-    description: "Application name used to identify all resources"
+    default: my-app
+    description: Application name used to identify all resources
   db_instance_class:
     type: string
-    default: "db.r6g.large"
-    description: "Database instance size"
+    default: db.r6g.2xlarge
     allowed-values:
-      - "db.r6g.large"
-      - "db.r6g.xlarge"
-      - "db.r6g.2xlarge"
+      - db.r6g.large
+      - db.r6g.xlarge
+      - db.r6g.2xlarge
+    description: Database instance size
   db_instance_count:
     type: string
-    default: "2"
-    description: "Number of Aurora database replicas"
+    default: 2
+    description: Number of Aurora database replicas
   k8s_version:
     type: string
-    default: "1.29"
-    description: "Kubernetes version for the EKS cluster"
+    default: 1.29
     allowed-values:
-      - "1.28"
-      - "1.29"
-      - "1.30"
+      - 1.28
+      - 1.29
+      - 1.3
+    description: Kubernetes version for the EKS cluster
   node_size:
     type: string
-    default: "m5.large"
-    description: "Worker node instance size"
+    default: m5.large
     allowed-values:
-      - "m5.large"
-      - "m5.xlarge"
-      - "m5.2xlarge"
+      - m5.large
+      - m5.xlarge
+      - m5.2xlarge
+    description: Worker node instance size
   node_count:
     type: string
-    default: "3"
-    description: "Number of EKS worker nodes"
+    default: 3
+    description: Number of EKS worker nodes
   api_stage:
     type: string
-    default: "v1"
-    description: "API Gateway deployment stage"
+    default: v1
     allowed-values:
-      - "v1"
-      - "v2"
-      - "staging"
-      - "production"
-
+      - v1
+      - v2
+      - staging
+      - production
+    description: API Gateway deployment stage
 outputs:
   api_url:
     value: '{{ .grains.api-gw.outputs.invoke_url }}'
     kind: link
+    quick: true
   cluster_endpoint:
     value: '{{ .grains.eks.outputs.cluster_endpoint }}'
     kind: link
+    quick: true
   database_endpoint:
     value: '{{ .grains.aurora.outputs.cluster_endpoint }}'
+    quick: true
   database_reader_endpoint:
     value: '{{ .grains.aurora.outputs.reader_endpoint }}'
+    quick: true
   database_name:
     value: '{{ .grains.aurora.outputs.database_name }}'
+    quick: true
   database_port:
     value: '{{ .grains.aurora.outputs.port }}'
+    quick: true
   vpc_id:
     value: '{{ .grains.vpc.outputs.vpc_id }}'
+    quick: true
   cluster_name:
     value: '{{ .grains.eks.outputs.cluster_name }}'
-
+    quick: true
 grains:
   vpc:
     kind: blueprint
@@ -91,6 +95,8 @@ grains:
       source:
         store: blueprint-update-demo
         path: blueprints/vpc.yaml
+      env-vars: []
+      commands: []
       inputs:
         - agent: '{{ .inputs.agent }}'
         - environment: '{{ .inputs.environment }}'
@@ -100,22 +106,31 @@ grains:
         - private_subnet_ids
         - public_subnet_ids
         - nat_gateway_ip
-
-  aurora:
-    depends-on: vpc
+  vpc123:
     kind: blueprint
-    env-labels:
-      on-success:
-        - 'label1'
-        - test: 'label4'
-        - test1: '{{ .grains.aurora.outputs.database_name }}'
-        - '{{ .grains.aurora.outputs.cluster_id }}'
-      on-failure:
-        - result: 'test1'
+    spec:
+      source:
+        store: blueprint-update-demo
+        path: blueprints/vpc.yaml
+      env-vars: []
+      commands: []
+      inputs:
+        - agent: '{{ .inputs.agent }}'
+        - environment: '{{ .inputs.environment }}'
+      outputs:
+        - vpc_id
+        - vpc_cidr
+        - private_subnet_ids
+        - public_subnet_ids
+        - nat_gateway_ip
+  aurora:
+    kind: blueprint
     spec:
       source:
         store: blueprint-update-demo
         path: blueprints/aurora.yaml
+      env-vars: []
+      commands: []
       inputs:
         - agent: '{{ .inputs.agent }}'
         - environment: '{{ .inputs.environment }}'
@@ -130,14 +145,23 @@ grains:
         - reader_endpoint
         - port
         - database_name
-
-  eks:
+    env-labels:
+      on-success:
+        - label1
+        - test: label4
+        - test1: '{{ .grains.aurora.outputs.database_name }}'
+        - '{{ .grains.aurora.outputs.cluster_id }}'
+      on-failure:
+        - result: test1
     depends-on: vpc
+  eks:
     kind: blueprint
     spec:
       source:
         store: blueprint-update-demo
         path: blueprints/eks.yaml
+      env-vars: []
+      commands: []
       inputs:
         - agent: '{{ .inputs.agent }}'
         - environment: '{{ .inputs.environment }}'
@@ -153,14 +177,15 @@ grains:
         - cluster_arn
         - oidc_issuer
         - cluster_version
-
+    depends-on: vpc
   api-gw:
-    depends-on: eks
     kind: blueprint
     spec:
       source:
         store: blueprint-update-demo
         path: blueprints/api-gw.yaml
+      env-vars: []
+      commands: []
       inputs:
         - agent: '{{ .inputs.agent }}'
         - environment: '{{ .inputs.environment }}'
@@ -171,3 +196,4 @@ grains:
         - api_id
         - api_arn
         - stage_name
+    depends-on: eks
