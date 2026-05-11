@@ -3,7 +3,7 @@ description: Full-stack application environment with VPC, Aurora database, EKS c
 
 environment:
   environment_name: my-app-20260506T17041871
-  state: active
+  state: inactive
   owner_email: kate.t@quali.com
 
 inputs:
